@@ -158,12 +158,12 @@ public class MainActivity extends AppCompatActivity {
         Intent intent = getIntent();
         //getExtras are not reference types they are value types,
         //Extras that are value-types require a second argument that provides a default value
-        int position = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
-        mIsNewNote = position == POSITION_NOT_SET;
+        mNotePosition = intent.getIntExtra(NOTE_POSITION, POSITION_NOT_SET);
+        mIsNewNote = mNotePosition == POSITION_NOT_SET;
         if (mIsNewNote){
             createNewNote();
         }else {
-            mNote = DataManager.getInstance().getNotes().get(position);
+            mNote = DataManager.getInstance().getNotes().get(mNotePosition);
         }
     }
     //to create a brand new note
@@ -197,9 +197,36 @@ public class MainActivity extends AppCompatActivity {
             mIsCanceling = true;
             //when an activity calls finish it signals that it should actually end,so in this process the onPause() will be called
             finish();
+        }else if (id == R.id.action_next){
+            moveNext();
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    //called before the menu is initially displayed
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        //we get a reference to the menu we r interested in
+        MenuItem item = menu.findItem(R.id.action_next);
+        int lastNoteIndex = DataManager.getInstance().getNotes().size() -1;
+
+        item.setEnabled(mNotePosition < lastNoteIndex);
+        return super.onPrepareOptionsMenu(menu);
+    }
+
+    private void moveNext() {
+        saveNote();
+        ++mNotePosition;
+
+        mNote = DataManager.getInstance().getNotes().get(mNotePosition);
+
+        //we save the original values of the next selected items
+        saveOriginalNoteValues();
+        displayNote(mSpinnerCourses,mTextNoteTitle,mTextNoteText);
+
+        //schedules call to onPrepareOptionsMenu
+        invalidateOptionsMenu();
     }
 
     //IMPLICIT INTENT DEMONSTRATION
